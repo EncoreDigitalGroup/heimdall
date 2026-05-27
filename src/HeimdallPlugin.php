@@ -42,6 +42,7 @@ final class HeimdallPlugin implements EventSubscriberInterface, PluginInterface
             $config["minimum_age"] ?? null,
             $this->stringList($trusted["vendors"] ?? []),
             $this->stringList($trusted["packages"] ?? []),
+            $this->lockedPackages(),
         );
 
         if (!$policy->isActive()) {
@@ -58,6 +59,23 @@ final class HeimdallPlugin implements EventSubscriberInterface, PluginInterface
         $config = $extra["heimdall"] ?? [];
 
         return is_array($config) ? $config : [];
+    }
+
+    /** @return array<string, string> */
+    private function lockedPackages(): array
+    {
+        $locker = $this->composer->getLocker();
+
+        if (!$locker->isLocked()) {
+            return [];
+        }
+
+        $result = [];
+        foreach ($locker->getLockedRepository(true)->getPackages() as $basePackage) {
+            $result[strtolower($basePackage->getName())] = $basePackage->getVersion();
+        }
+
+        return $result;
     }
 
     /** @return array<int, string> */

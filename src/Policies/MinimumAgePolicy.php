@@ -23,20 +23,26 @@ final class MinimumAgePolicy
     /** @var array<int, string> */
     private array $trustedPackages;
 
+    /** @var array<string, string> */
+    private array $lockedPackages;
+
     /**
      * @param  array<int, string>  $trustedVendors
      * @param  array<int, string>  $trustedPackages
+     * @param  array<string, string>  $lockedPackages  map of lowercased package name to installed version
      */
     public function __construct(
         private readonly IOInterface $io,
         int|string|null $minimumAge,
         array $trustedVendors = [],
         array $trustedPackages = [],
+        array $lockedPackages = [],
     ) {
         $this->minimumAgeDays = $this->normalize($minimumAge);
         $this->threshold = $this->buildThreshold($this->minimumAgeDays);
         $this->trustedVendors = array_map(strtolower(...), $trustedVendors);
         $this->trustedPackages = array_map(strtolower(...), $trustedPackages);
+        $this->lockedPackages = $lockedPackages;
     }
 
     public function isActive(): bool
@@ -83,6 +89,10 @@ final class MinimumAgePolicy
         }
 
         if (in_array($name, $this->trustedPackages, true)) {
+            return true;
+        }
+
+        if (isset($this->lockedPackages[$name]) && $this->lockedPackages[$name] === $package->getVersion()) {
             return true;
         }
 

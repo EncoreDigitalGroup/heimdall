@@ -35,8 +35,14 @@ final class HeimdallPlugin implements EventSubscriberInterface, PluginInterface
     public function onPrePoolCreate(PrePoolCreateEvent $event): void
     {
         $config = $this->resolveConfig();
+        $trusted = is_array($config["trusted"] ?? null) ? $config["trusted"] : [];
 
-        $policy = new MinimumAgePolicy($this->io, $config["minimum_age"] ?? null);
+        $policy = new MinimumAgePolicy(
+            $this->io,
+            $config["minimum_age"] ?? null,
+            $this->stringList($trusted["vendors"] ?? []),
+            $this->stringList($trusted["packages"] ?? []),
+        );
 
         if (!$policy->isActive()) {
             return;
@@ -52,5 +58,22 @@ final class HeimdallPlugin implements EventSubscriberInterface, PluginInterface
         $config = $extra["heimdall"] ?? [];
 
         return is_array($config) ? $config : [];
+    }
+
+    /** @return array<int, string> */
+    private function stringList(mixed $value): array
+    {
+        if (!is_array($value)) {
+            return [];
+        }
+
+        $result = [];
+        foreach ($value as $item) {
+            if (is_string($item) && $item !== "") {
+                $result[] = $item;
+            }
+        }
+
+        return $result;
     }
 }

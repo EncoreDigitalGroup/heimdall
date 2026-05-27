@@ -12,15 +12,31 @@ use Exception;
 
 final class MinimumAgePolicy
 {
+    private const string SELF_PACKAGE = "encoredigitalgroup/heimdall";
+
     private ?DateTimeImmutable $threshold;
     private ?int $minimumAgeDays;
 
+    /** @var array<int, string> */
+    private array $trustedVendors;
+
+    /** @var array<int, string> */
+    private array $trustedPackages;
+
+    /**
+     * @param  array<int, string>  $trustedVendors
+     * @param  array<int, string>  $trustedPackages
+     */
     public function __construct(
         private readonly IOInterface $io,
         int|string|null $minimumAge,
+        array $trustedVendors = [],
+        array $trustedPackages = [],
     ) {
         $this->minimumAgeDays = $this->normalize($minimumAge);
         $this->threshold = $this->buildThreshold($this->minimumAgeDays);
+        $this->trustedVendors = array_map(strtolower(...), $trustedVendors);
+        $this->trustedPackages = array_map(strtolower(...), $trustedPackages);
     }
 
     public function isActive(): bool
@@ -51,6 +67,22 @@ final class MinimumAgePolicy
     private function isAllowed(BasePackage $package): bool
     {
         if ($package instanceof RootPackageInterface) {
+            return true;
+        }
+
+        $name = strtolower($package->getName());
+
+        if ($name === self::SELF_PACKAGE) {
+            return true;
+        }
+
+        $vendor = strstr($name, "/", true);
+
+        if (is_string($vendor) && in_array($vendor, $this->trustedVendors, true)) {
+            return true;
+        }
+
+        if (in_array($name, $this->trustedPackages, true)) {
             return true;
         }
 

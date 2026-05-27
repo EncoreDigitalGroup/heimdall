@@ -36,7 +36,15 @@ All configuration lives under the `extra.heimdall` key in your project's `compos
 {
     "extra": {
         "heimdall": {
-            "minimum_age": 7
+            "minimum_age": 7,
+            "trusted": {
+                "vendors": [
+                    "encoredigitalgroup"
+                ],
+                "packages": [
+                    "acme/widgets"
+                ]
+            }
         }
     }
 }
@@ -65,6 +73,31 @@ error.
 - Packages without a release date (e.g. path or VCS repositories whose metadata does not include one) are passed through unfiltered. Heimdall only acts on data it can
   trust.
 - Values must be positive integers. Strings that look like integers (`"7"`) are accepted; anything else is rejected with a warning and the policy stays inactive.
+- The `encoredigitalgroup/heimdall` package is always exempt from its own policy, so the plugin can always update itself.
+
+### `trusted.vendors`
+
+|             |                                                                |
+|-------------|----------------------------------------------------------------|
+| **Type**    | `string[]` (vendor names — the part before `/`)                |
+| **Default** | `[]`                                                           |
+| **Example** | `["encoredigitalgroup"]` trusts every package from that vendor |
+
+Any package whose vendor segment matches an entry in this list bypasses the minimum age check entirely. Useful for first-party packages you publish yourself, where the
+release pipeline already enforces equivalent guarantees.
+
+### `trusted.packages`
+
+|             |                                               |
+|-------------|-----------------------------------------------|
+| **Type**    | `string[]` (fully-qualified `vendor/name`)    |
+| **Default** | `[]`                                          |
+| **Example** | `["acme/widgets"]` trusts that single package |
+
+Trusts a specific package regardless of vendor. If the package's vendor is already in `trusted.vendors`, the per-package entry is redundant — vendor trust takes
+precedence.
+
+Both lists are matched case-insensitively against the canonical Composer package name.
 
 ## How it works
 
@@ -76,6 +109,8 @@ there are no second-order effects on Composer's solver.
 
 - `composer install --no-plugins` bypasses Heimdall entirely. Use deliberately, e.g. in an emergency rollback.
 - Removing or zeroing the `extra.heimdall.minimum_age` key disables the policy.
+- Adding a vendor to `extra.heimdall.trusted.vendors` or a package to `extra.heimdall.trusted.packages` exempts it from the age check without disabling the policy
+  globally.
 
 ## License
 

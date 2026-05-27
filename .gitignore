@@ -1,0 +1,23 @@
+# General
+vendor/*
+.vscode/*
+.claude/*
+.idea/*
+auth.json
+composer.lock
+database.sqlite
+.DS_Store
+tmpclaude*
+CLAUDE.md
+.phpstorm.meta.php
+_ide_helper.php
+.phpunit.cache
+.phpunit.result.cache
+
+# Environment
+.env
+.env.backup
+.env.production
+.env.local
+.env.staging
+.env.testing

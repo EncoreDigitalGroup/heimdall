@@ -1,0 +1,15 @@
+parameters:
+    level: 8
+    paths:
+        - src
+    reportUnmatchedIgnoredErrors: true
+    checkDynamicProperties: false
+    checkTooWideReturnTypesInProtectedAndPublicMethods: false
+    treatPhpDocTypesAsCertain: false
+    ignoreErrors:
+        - '#PHPDoc tag .+ #'
+        - identifier: missingType.generics
+        - identifier: missingType.iterableValue
+    cognitive_complexity:
+            class: 50
+            function: 10

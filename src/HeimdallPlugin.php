@@ -43,6 +43,7 @@ final class HeimdallPlugin implements EventSubscriberInterface, PluginInterface
             $this->stringList($trusted["vendors"] ?? []),
             $this->stringList($trusted["packages"] ?? []),
             $this->lockedPackages(),
+            (bool) ($config["show_logs"] ?? false),
         );
 
         if (!$policy->isActive()) {

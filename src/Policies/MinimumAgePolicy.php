@@ -37,6 +37,7 @@ final class MinimumAgePolicy
         array $trustedVendors = [],
         array $trustedPackages = [],
         array $lockedPackages = [],
+        private readonly bool $showLogs = false,
     ) {
         $this->minimumAgeDays = $this->normalize($minimumAge);
         $this->threshold = $this->buildThreshold($this->minimumAgeDays);
@@ -105,7 +106,7 @@ final class MinimumAgePolicy
         $releasedImmutable = DateTimeImmutable::createFromInterface($released);
 
         if ($releasedImmutable > $this->threshold) {
-            $this->io->writeError(sprintf(
+            $this->writeError(sprintf(
                 "<warning>heimdall: rejecting %s %s — released %s, below minimum age %d days</warning>",
                 $package->getPrettyName(),
                 $package->getPrettyVersion(),
@@ -130,7 +131,7 @@ final class MinimumAgePolicy
         }
 
         if (!ctype_digit(trim($value))) {
-            $this->io->writeError(sprintf(
+            $this->writeError(sprintf(
                 "<warning>heimdall: invalid minimum-age value \"%s\" — expected integer days, ignoring</warning>",
                 $value,
             ));
@@ -141,6 +142,15 @@ final class MinimumAgePolicy
         $days = (int) $value;
 
         return $days > 0 ? $days : null;
+    }
+
+    private function writeError(string $message): void
+    {
+        if (!$this->showLogs) {
+            return;
+        }
+
+        $this->io->writeError($message);
     }
 
     private function buildThreshold(?int $days): ?DateTimeImmutable

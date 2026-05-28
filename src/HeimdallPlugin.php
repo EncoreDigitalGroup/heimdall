@@ -37,14 +37,15 @@ final class HeimdallPlugin implements EventSubscriberInterface, PluginInterface
         $config = $this->resolveConfig();
         $trusted = is_array($config["trusted"] ?? null) ? $config["trusted"] : [];
 
-        $policy = new MinimumAgePolicy(
-            $this->io,
-            $config["minimum_age"] ?? null,
-            $this->stringList($trusted["vendors"] ?? []),
-            $this->stringList($trusted["packages"] ?? []),
-            $this->lockedPackages(),
-            (bool) ($config["show_logs"] ?? false),
+        $heimdallConfig = new HeimdallConfig(
+            minimumAge: $config["minimum_age"] ?? null,
+            trustedVendors: $this->stringList($trusted["vendors"] ?? []),
+            trustedPackages: $this->stringList($trusted["packages"] ?? []),
+            lockedPackages: $this->lockedPackages(),
+            showLogs: (bool) ($config["show_logs"] ?? false),
         );
+
+        $policy = new MinimumAgePolicy($this->io, $heimdallConfig);
 
         if (!$policy->isActive()) {
             return;

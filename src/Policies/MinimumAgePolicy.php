@@ -8,6 +8,7 @@ use Composer\Package\RootPackageInterface;
 use DateInterval;
 use DateTimeImmutable;
 use DateTimeInterface;
+use EncoreDigitalGroup\Heimdall\HeimdallConfig;
 use Exception;
 
 final class MinimumAgePolicy
@@ -26,24 +27,18 @@ final class MinimumAgePolicy
     /** @var array<string, string> */
     private array $lockedPackages;
 
-    /**
-     * @param  array<int, string>  $trustedVendors
-     * @param  array<int, string>  $trustedPackages
-     * @param  array<string, string>  $lockedPackages  map of lowercased package name to installed version
-     */
+    private bool $showLogs;
+
     public function __construct(
         private readonly IOInterface $io,
-        int|string|null $minimumAge,
-        array $trustedVendors = [],
-        array $trustedPackages = [],
-        array $lockedPackages = [],
-        private readonly bool $showLogs = false,
+        HeimdallConfig $config,
     ) {
-        $this->minimumAgeDays = $this->normalize($minimumAge);
+        $this->showLogs = $config->showLogs();
+        $this->minimumAgeDays = $this->normalize($config->minimumAge());
         $this->threshold = $this->buildThreshold($this->minimumAgeDays);
-        $this->trustedVendors = array_map(strtolower(...), $trustedVendors);
-        $this->trustedPackages = array_map(strtolower(...), $trustedPackages);
-        $this->lockedPackages = $lockedPackages;
+        $this->trustedVendors = array_map(strtolower(...), $config->trustedVendors());
+        $this->trustedPackages = array_map(strtolower(...), $config->trustedPackages());
+        $this->lockedPackages = $config->lockedPackages();
     }
 
     public function isActive(): bool
